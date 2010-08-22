@@ -3,13 +3,13 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.2
+Stable tag: 1.3
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
 == Description ==
 
-Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. The xml data from 360voice is being cached hourly with wp_cron.
+Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. The xml data from 360voice is being pull twice a day with wp_cron.
 
 == Installation ==
 
@@ -38,6 +38,20 @@ This script requires support for 'simplexml_load_file'. In the case that this wo
 = 1.0 =
 
 First version.
+
+= 1.1 =
+
+Fixed admin backend message bugs
+
+= 1.2 =
+
+Fixed wording
+
+= 1.3 =
+
+* Fixed a wp_cron bug. The event "do_this_hourly" was scheduled everytime the plugin has been activated. Please deactivate und activate the plugin to fix this issue.
+* Changed the scheduling time to "twicedaily".
+* Added options to disable credits
 
 == Screenshots ==
 

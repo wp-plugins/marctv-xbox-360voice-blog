@@ -4,7 +4,7 @@
   Plugin URI: http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.2
+  Version: 1.3
   Author URI: http://marctv.de
   License: GPL2
  */
@@ -21,6 +21,7 @@ class XBOX360_Voice {
     var $class_citem = 'x3v_item';
     var $class_desc = 'x3v_desc';
     var $class_title = 'x3v_title';
+    var $displaycredits = "true";
    
     var $cachename = 'XBOX360Voice_cache';
 
@@ -32,13 +33,20 @@ class XBOX360_Voice {
         add_action('get_xbox360voice_blog', array(&$this, 'get_xbox360voice_blog'));
         register_activation_hook(__FILE__, array(&$this, 'my_activation'));
         register_deactivation_hook(__FILE__, array(&$this, 'my_deactivation'));
-        add_action('my_hourly_event', array(&$this, 'do_this_hourly'));
+        add_action('pull_xbox360voice_xml', array(&$this, 'do_this_twicedaily'));
         add_action('plugins_loaded', array(&$this, 'marctv_xbox360voice_loaded'));
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
       
 
         $this->username = get_option('xbox360voice_username');
         $this->rl_name = get_option('xbox360voice_rl_name');
+
+        if(get_option('xbox360voice_displaycredits')==''){
+            update_option('xbox360voice_displaycredits', trim(stripslashes($this->displaycredits)));
+        }else{
+            $this->displaycredits = get_option('xbox360voice_displaycredits');
+        }
+
     }
 
     function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "",$class_clist = "",$class_citem = "") {
@@ -87,12 +95,13 @@ class XBOX360_Voice {
     }
 
     function my_activation() {
-        wp_schedule_event(time(), 'hourly', 'my_hourly_event');
+        wp_schedule_event(time(), 'twicedaily', 'pull_xbox360voice_xml');
         add_option($this->cachename, '', "XBOX 360voice XML Cache", "no");
     }
 
     function my_deactivation() {
-        wp_clear_scheduled_hook('pull_xbox360voice_xml_hourly');
+        wp_clear_scheduled_hook('pull_xbox360voice_xml');
+        wp_clear_scheduled_hook('my_hourly_event');
         delete_option($this->cachename);
     }
 
@@ -149,11 +158,12 @@ class XBOX360_Voice {
                 <p class=\"" . $this->class_desc . "\">" . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
                 </li>\n";
         }
-        $output .= "</ul>\n";
-        $output .= "<ul class=\"" . $this->class_clist . "\">";
-        $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
-        $output .= "</ul>";
-
+        if($this->displaycredits=="true"){
+            $output .= "</ul>\n";
+            $output .= "<ul class=\"" . $this->class_clist . "\">";
+            $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
+            $output .= "</ul>";
+        }
         return $output;
     }
 
@@ -204,7 +214,7 @@ class XBOX360_Voice {
         return strip_tags($html_str);
     }
 
-    function do_this_hourly() {
+    function do_this_twicedaily() {
         if (!$this->username == '') {
             $xmlobj = $this->getXMLObj($this->username);
             if (count($xmlobj->channel->item) > 3) {
@@ -227,19 +237,33 @@ class XBOX360_Voice {
             if (update_option('xbox360voice_username', trim(stripslashes($_POST['xbox360voice-username'])))) {
                 $msg .= '<p>' . $this->__('XBOX Live username saved.') . '</p>';
             }
+
             if (update_option('xbox360voice_rl_name', trim(stripslashes($_POST['xbox360voice-rl-name'])))) {
                 $msg .= '<p>' . $this->__('Realname saved.') . '</p>';
             }
+           
+            if($_POST['xbox360voice-displaycredits']==true){
+               if(get_option('xbox360voice_displaycredits')!='true'){
+                   $msg .= '<p>' . $this->__('Credits enabled') . '</p>';
+               }
+               update_option('xbox360voice_displaycredits', 'true');
+            }else{
+               if(get_option('xbox360voice_displaycredits')!='false'){
+                   $msg .= '<p>' . $this->__('Credits disabled') . '</p>';
+               }
+               update_option('xbox360voice_displaycredits', 'false');
+            }
+
             if (empty($msg)) {
                 $msg .= '<p>' . $this->__('No changes made.') . '</p>';
             }
         }
 
-        $this->username = get_option('xbox360voice_username');
-        $this->rl_name = get_option('xbox360voice_rl_name');
+        $this->username         = get_option('xbox360voice_username');
+        $this->rl_name          = get_option('xbox360voice_rl_name');
+        $this->displaycredits   = get_option('xbox360voice_displaycredits');
 
-        if ($this->username !='' && $this->do_this_hourly() == false) {
-
+        if ($this->username !='' && $this->do_this_twicedaily() == false) {
             $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog:') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . $this->username . '">360Voice Blog</a>';
         }
 
@@ -258,20 +282,24 @@ class XBOX360_Voice {
 <?php wp_nonce_field('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']); ?>
                 <fieldset class="options"><legend><?php $this->_e('XBOX Live Username') ?></legend>
                     <label for="xbox360voice_username"> <?php $this->_e('Enter the username of your XBOX Live account:') ?>
-                        <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
+                    <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
                     </label>
                 </fieldset>
 
                 <fieldset class="options"><legend><?php $this->_e('Realname (optional)') ?></legend>
-            <label for="xbox360voice_rl_name"> <?php $this->_e('Enter your real first name:') ?>
-                <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
-            </label>
-        </fieldset>
-
-        <p class="submit"><input type="submit" name="submit" value="<?php $this->_e('Save &raquo;') ?>" /></p>
-    </form>
-
-</div>
+                    <label for="xbox360voice_rl_name"> <?php $this->_e('Enter your real first name:') ?>
+                    <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
+                    </label>
+                </fieldset>
+                
+                <fieldset class="options"><legend><?php $this->_e('Display credits') ?></legend>
+                    <label for="xbox360voice-displaycredits"> <?php $this->_e('Toggles the notice link to 360Voice.com and the plugin\'s website') ?>
+                    <input type="checkbox" <?php if($this->displaycredits=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displaycredits" id="xbox360voice-displaycredits" />
+                    </label>
+                </fieldset>
+                <p class="submit"><input type="submit" name="submit" value="<?php $this->_e('Save &raquo;') ?>" /></p>
+            </form>
+        </div>
 <?php
     }
 }

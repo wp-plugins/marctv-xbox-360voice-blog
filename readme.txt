@@ -3,9 +3,9 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.1
+Stable tag: 1.2
 
-Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. Thanks to 360voice.gamerdna.com for the data!
+Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
 == Description ==
 

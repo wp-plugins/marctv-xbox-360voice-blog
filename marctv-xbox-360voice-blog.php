@@ -4,7 +4,7 @@
   Plugin URI: http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.1
+  Version: 1.2
   Author URI: http://marctv.de
   License: GPL2
  */
@@ -151,7 +151,7 @@ class XBOX360_Voice {
         }
         $output .= "</ul>\n";
         $output .= "<ul class=\"" . $this->class_clist . "\">";
-        $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
+        $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
         $output .= "</ul>";
 
         return $output;
@@ -238,8 +238,13 @@ class XBOX360_Voice {
         $this->username = get_option('xbox360voice_username');
         $this->rl_name = get_option('xbox360voice_rl_name');
 
-        if ($this->do_this_hourly() == false) {
-            $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog:') . '</strong> <a href="http://360voice.gamerdna.com/tag/' . $this->username . '">' . $this->username . '\'s 360Voice Blog</a>';
+        if ($this->username !='' && $this->do_this_hourly() == false) {
+
+            $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog:') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . $this->username . '">360Voice Blog</a>';
+        }
+
+        if ($this->username ==''){
+            $msg .= '<strong class="warning">Please enter you XBOX Live Gamertag</strong>';
         }
 
         if (!empty($msg)) {

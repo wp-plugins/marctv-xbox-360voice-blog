@@ -9,7 +9,7 @@ Displays the latest entries of your 360 voice gamerdna blog either as a widget f
 
 == Description ==
 
-Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. The xml data from 360voice is being pull twice a day with wp_cron.
+Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. The xml data from 360voice is being pulled twice a day with wp_cron.
 
 == Installation ==
 

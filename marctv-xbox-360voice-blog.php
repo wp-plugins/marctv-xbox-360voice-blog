@@ -4,11 +4,10 @@
   Plugin URI: http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.3
+  Version: 1.3.1
   Author URI: http://marctv.de
   License: GPL2
  */
-
 
 class XBOX360_Voice {
     const VOICEURL = 'http://360voice.gamerdna.com/rss/';
@@ -97,11 +96,11 @@ class XBOX360_Voice {
     function my_activation() {
         wp_schedule_event(time(), 'twicedaily', 'pull_xbox360voice_xml');
         add_option($this->cachename, '', "XBOX 360voice XML Cache", "no");
+        wp_clear_scheduled_hook('my_hourly_event');
     }
 
     function my_deactivation() {
         wp_clear_scheduled_hook('pull_xbox360voice_xml');
-        wp_clear_scheduled_hook('my_hourly_event');
         delete_option($this->cachename);
     }
 

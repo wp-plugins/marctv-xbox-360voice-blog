@@ -1,6 +1,6 @@
 === MarcTV XBOX 360Voice Blog ===
 Contributors: marcdk
-Tags: xbox360, blog, 360voice, gamerdna
+Tags: xbox360, blog, 360voice, gamerdna, marctv
 Requires at least: 3.0
 Tested up to: 3.0
 Stable tag: 1.3.1

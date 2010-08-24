@@ -21,6 +21,8 @@ class XBOX360_Voice {
     var $class_desc = 'x3v_desc';
     var $class_title = 'x3v_title';
     var $displaycredits = "true";
+    var $displayavatar = "true";
+    var $avatarsize = ''; // 'l' or 's'
    
     var $cachename = 'XBOX360Voice_cache';
 
@@ -35,15 +37,22 @@ class XBOX360_Voice {
         add_action('pull_xbox360voice_xml', array(&$this, 'do_this_twicedaily'));
         add_action('plugins_loaded', array(&$this, 'marctv_xbox360voice_loaded'));
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
-      
+        add_action('wp_print_styles', array(&$this, 'add_styles'));
 
         $this->username = get_option('xbox360voice_username');
         $this->rl_name = get_option('xbox360voice_rl_name');
+        $this->avatarsize = get_option('xbox360voice_avatarsize');
 
         if(get_option('xbox360voice_displaycredits')==''){
             update_option('xbox360voice_displaycredits', trim(stripslashes($this->displaycredits)));
         }else{
             $this->displaycredits = get_option('xbox360voice_displaycredits');
+        }
+
+        if(get_option('xbox360voice_displayavatar')==''){
+            update_option('xbox360voice_displayavatar', trim(stripslashes($this->displayavatar)));
+        }else{
+            $this->displayavatar = get_option('xbox360voice_displayavatar');
         }
 
     }
@@ -91,6 +100,12 @@ class XBOX360_Voice {
                 "marctv-admin-settings", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/admin.css",
                 false, "1.0");
         add_options_page($this->__('XBOX 360 Voice'), $this->__('XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
+    }
+
+    function add_styles(){
+        wp_enqueue_style(
+                "marctv-xbox360voice", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/styles.css",
+                false, "1.0");
     }
 
     function my_activation() {
@@ -150,11 +165,26 @@ class XBOX360_Voice {
 
     function generateList($xmlobj) {
 
+        if($this->avatarsize == 'l'){
+            $size = '50';
+        }else if($this->avatarsize == 's'){
+            $size = '32';
+        }else{
+            $size = '50';
+            $this->avatarsize = 'l';
+        }
+        
+        $avatar_img = '';
+
+        if($this->displayavatar=="true"){
+            $avatar_img = '<img class="avatar_left" height="' . $size . '" width="' . $size . '" src="http://avatar.xboxlive.com/avatar/' . $this->username . '/avatarpic-' . $this->avatarsize . '.png" >';
+        }
+
         $output = "<ul class=\"" . $this->class_list . "\">\n";
         for ($i = 0; $i < $this->count; $i++) {
             $output .= "<li class=\"" . $this->class_item . "\">\n
                 <strong class=\"" . $this->class_title . "\">" . $this->extractDate($xmlobj->channel[0]->item[$i]->title) . "</strong>\n
-                <p class=\"" . $this->class_desc . "\">" . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
+                <p class=\"" . $this->class_desc . "\">" . $avatar_img . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
                 </li>\n";
         }
         if($this->displaycredits=="true"){
@@ -233,12 +263,17 @@ class XBOX360_Voice {
         $msg = '';
         if (isset($_POST['xbox360voice-settings'])) {
             check_admin_referer('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+
             if (update_option('xbox360voice_username', trim(stripslashes($_POST['xbox360voice-username'])))) {
                 $msg .= '<p>' . $this->__('XBOX Live username saved.') . '</p>';
             }
 
             if (update_option('xbox360voice_rl_name', trim(stripslashes($_POST['xbox360voice-rl-name'])))) {
                 $msg .= '<p>' . $this->__('Realname saved.') . '</p>';
+            }
+
+            if (update_option('xbox360voice_avatarsize', trim(stripslashes($_POST['xbox360voice-avatarsize'])))) {
+                $msg .= '<p>' . $this->__('Avatar size saved.') . '</p>';
             }
            
             if($_POST['xbox360voice-displaycredits']==true){
@@ -253,6 +288,20 @@ class XBOX360_Voice {
                update_option('xbox360voice_displaycredits', 'false');
             }
 
+
+            if($_POST['xbox360voice-displayavatar']==true){
+               if(get_option('xbox360voice_displayavatar')!='true'){
+                   $msg .= '<p>' . $this->__('Avatar enabled') . '</p>';
+               }
+               update_option('xbox360voice_displayavatar', 'true');
+            }else{
+               if(get_option('xbox360voice_displayavatar')!='false'){
+                   $msg .= '<p>' . $this->__('Avatar disabled') . '</p>';
+               }
+               update_option('xbox360voice_displayavatar', 'false');
+            }
+
+
             if (empty($msg)) {
                 $msg .= '<p>' . $this->__('No changes made.') . '</p>';
             }
@@ -261,6 +310,8 @@ class XBOX360_Voice {
         $this->username         = get_option('xbox360voice_username');
         $this->rl_name          = get_option('xbox360voice_rl_name');
         $this->displaycredits   = get_option('xbox360voice_displaycredits');
+        $this->displayavatar    = get_option('xbox360voice_displayavatar');
+        $this->avatarsize       = get_option('xbox360voice_avatarsize');
 
         if ($this->username !='' && $this->do_this_twicedaily() == false) {
             $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog:') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . $this->username . '">360Voice Blog</a>';
@@ -280,13 +331,13 @@ class XBOX360_Voice {
                 <input type="hidden" value="1" name="xbox360voice-settings" id="xbox360voice-settings" />
 <?php wp_nonce_field('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']); ?>
                 <fieldset class="options"><legend><?php $this->_e('XBOX Live Username') ?></legend>
-                    <label for="xbox360voice_username"> <?php $this->_e('Enter the username of your XBOX Live account:') ?>
+                    <label for="xbox360voice-username"> <?php $this->_e('Enter the username of your XBOX Live account:') ?>
                     <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
                     </label>
                 </fieldset>
 
                 <fieldset class="options"><legend><?php $this->_e('Realname (optional)') ?></legend>
-                    <label for="xbox360voice_rl_name"> <?php $this->_e('Enter your real first name:') ?>
+                    <label for="xbox360voice-rl-name"> <?php $this->_e('Enter your real first name:') ?>
                     <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
                     </label>
                 </fieldset>
@@ -296,6 +347,23 @@ class XBOX360_Voice {
                     <input type="checkbox" <?php if($this->displaycredits=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displaycredits" id="xbox360voice-displaycredits" />
                     </label>
                 </fieldset>
+
+                <fieldset class="options"><legend><?php $this->_e('Display Avatar') ?></legend>
+                    <label for="xbox360voice-displayavatar"> <?php $this->_e('Toggles the avatar image') ?>
+                    <input type="checkbox" <?php if($this->displayavatar=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displayavatar" id="xbox360voice-displayavatar" />
+                    </label>
+                </fieldset>
+
+                <fieldset class="options"><legend><?php $this->_e('Avatar Size') ?></legend>
+                    <label for="xbox360voice-avatarsize"> <?php $this->_e('Size of the avatar:') ?>
+                    <select name="xbox360voice-avatarsize" id="xbox360voice-avatarsize">
+                      <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="l"){echo 'selected="selected"';} ?> value="l"><?php $this->_e('large - 50px') ?></option>
+                      <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="s"){echo 'selected="selected"';} ?> value="s"><?php $this->_e('small - 32px') ?></option>
+                    </select>
+                    </label>
+                </fieldset>
+
+
                 <p class="submit"><input type="submit" name="submit" value="<?php $this->_e('Save &raquo;') ?>" /></p>
             </form>
         </div>

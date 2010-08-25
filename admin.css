@@ -1,13 +1,21 @@
-.settings_page_marctv_adb legend{
+.settings_page_xbox360voice legend{
     font-size:120%;
     font-weight:bold;
     margin:5px;
     padding-top:10px;
 }
 
-.settings_page_marctv_adb #message .warning{
+.settings_page_xbox360voice label{
+    width: 400px;
+}
+
+.settings_page_xbox360voice #message .warning{
    color: red;
 }
-.settings_page_marctv_adb #message{
+.settings_page_xbox360voice #message{
     padding:20px 5px 0;
+}
+
+.settings_page_xbox360voice .form_elem{
+
 }

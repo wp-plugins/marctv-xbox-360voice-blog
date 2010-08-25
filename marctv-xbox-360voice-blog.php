@@ -1,28 +1,29 @@
 <?php
 /*
   Plugin Name: MarcTV 360Voice Blog
-  Plugin URI: http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/
+  Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.4
+  Version: 1.4.1
   Author URI: http://marctv.de
   License: GPL2
  */
 
 class XBOX360_Voice {
     const VOICEURL = 'http://360voice.gamerdna.com/rss/';
-    var $username = '';
-    var $rl_name = '';
-    var $count = 3; //will be changed in the settings in future releases
-    var $class_list = 'x3v_list';
-    var $class_item = 'x3v_item';
-    var $class_clist = 'x3v_list';
-    var $class_citem = 'x3v_item';
-    var $class_desc = 'x3v_desc';
-    var $class_title = 'x3v_title';
+    var $username       = '';
+    var $rl_name        = '';
+    var $avatarsize     = '';
+    var $count          = 3; //will be custmizable in future releases
+    var $class_list     = 'x3v_list';
+    var $class_item     = 'x3v_item';
+    var $class_clist    = 'x3v_list';
+    var $class_citem    = 'x3v_item';
+    var $class_desc     = 'x3v_desc';
+    var $class_title    = 'x3v_title';
     var $displaycredits = "true";
-    var $displayavatar = "true";
-    var $avatarsize = ''; // 'l' or 's'
+    var $displayavatar  = "true";
+
    
     var $cachename = 'XBOX360Voice_cache';
 
@@ -98,7 +99,7 @@ class XBOX360_Voice {
     function add_admin_menu() {
         wp_enqueue_style(
                 "marctv-admin-settings", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/admin.css",
-                false, "1.0");
+                false, "1.4");
         add_options_page($this->__('XBOX 360 Voice'), $this->__('XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
     }
 
@@ -111,7 +112,6 @@ class XBOX360_Voice {
     function my_activation() {
         wp_schedule_event(time(), 'twicedaily', 'pull_xbox360voice_xml');
         add_option($this->cachename, '', "XBOX 360voice XML Cache", "no");
-        wp_clear_scheduled_hook('my_hourly_event');
     }
 
     function my_deactivation() {
@@ -190,7 +190,7 @@ class XBOX360_Voice {
         if($this->displaycredits=="true"){
             $output .= "</ul>\n";
             $output .= "<ul class=\"" . $this->class_clist . "\">";
-            $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://wordpress.org/extend/plugins/marctv-xbox-360voice-blog/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
+            $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
             $output .= "</ul>";
         }
         return $output;
@@ -253,7 +253,6 @@ class XBOX360_Voice {
                 return false;
             }
         } else {
-
             return false;
         }
     }
@@ -329,34 +328,34 @@ class XBOX360_Voice {
             <h2><?php $this->_e('XBOX 360 Voice settings') ?></h2>
             <form method="post" action="">
                 <input type="hidden" value="1" name="xbox360voice-settings" id="xbox360voice-settings" />
-<?php wp_nonce_field('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']); ?>
-                <fieldset class="options"><legend><?php $this->_e('XBOX Live Username') ?></legend>
-                    <label for="xbox360voice-username"> <?php $this->_e('Enter the username of your XBOX Live account:') ?>
-                    <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
+                <?php wp_nonce_field('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']); ?>
+                <fieldset class="options"><legend><?php $this->_e('XBOX Live Username:') ?></legend>
+                    <label for="xbox360voice-username"> <?php $this->_e('Enter your Gamertag:') ?>
+                    <input class="form_elem" size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
                     </label>
                 </fieldset>
 
-                <fieldset class="options"><legend><?php $this->_e('Realname (optional)') ?></legend>
+                <fieldset class="options"><legend><?php $this->_e('Realname (optional):') ?></legend>
                     <label for="xbox360voice-rl-name"> <?php $this->_e('Enter your real first name:') ?>
-                    <input size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
+                    <input class="form_elem" size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
                     </label>
                 </fieldset>
                 
-                <fieldset class="options"><legend><?php $this->_e('Display credits') ?></legend>
-                    <label for="xbox360voice-displaycredits"> <?php $this->_e('Toggles the notice link to 360Voice.com and the plugin\'s website') ?>
-                    <input type="checkbox" <?php if($this->displaycredits=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displaycredits" id="xbox360voice-displaycredits" />
+                <fieldset class="options"><legend><?php $this->_e('Credits:') ?></legend>
+                    <label for="xbox360voice-displaycredits"> <?php $this->_e('Display credits link?') ?>
+                    <input class="form_elem" type="checkbox" <?php if($this->displaycredits=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displaycredits" id="xbox360voice-displaycredits" />
                     </label>
                 </fieldset>
 
-                <fieldset class="options"><legend><?php $this->_e('Display Avatar') ?></legend>
-                    <label for="xbox360voice-displayavatar"> <?php $this->_e('Toggles the avatar image') ?>
-                    <input type="checkbox" <?php if($this->displayavatar=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displayavatar" id="xbox360voice-displayavatar" />
+                <fieldset class="options"><legend><?php $this->_e('Avatar:') ?></legend>
+                    <label for="xbox360voice-displayavatar"> <?php $this->_e('Display avatar image?') ?>
+                    <input class="form_elem" type="checkbox" <?php if($this->displayavatar=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displayavatar" id="xbox360voice-displayavatar" />
                     </label>
                 </fieldset>
 
-                <fieldset class="options"><legend><?php $this->_e('Avatar Size') ?></legend>
-                    <label for="xbox360voice-avatarsize"> <?php $this->_e('Size of the avatar:') ?>
-                    <select name="xbox360voice-avatarsize" id="xbox360voice-avatarsize">
+                <fieldset class="options"><legend><?php $this->_e('Avatar Size:') ?></legend>
+                    <label for="xbox360voice-avatarsize"> <?php $this->_e('Size of the avatar image:') ?>
+                    <select class="form_elem" name="xbox360voice-avatarsize" id="xbox360voice-avatarsize">
                       <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="l"){echo 'selected="selected"';} ?> value="l"><?php $this->_e('large - 50px') ?></option>
                       <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="s"){echo 'selected="selected"';} ?> value="s"><?php $this->_e('small - 32px') ?></option>
                     </select>
@@ -370,6 +369,5 @@ class XBOX360_Voice {
 <?php
     }
 }
-// achievement unlocked: wrote my first complex wp plugin with backend. 
 $xbox360voice_plugin = new XBOX360_Voice();
 ?>

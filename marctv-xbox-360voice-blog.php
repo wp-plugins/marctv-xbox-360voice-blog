@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: MarcTV 360Voice Blog
-  Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins
+  Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
   Version: 1.4.1
@@ -190,7 +190,7 @@ class XBOX360_Voice {
         if($this->displaycredits=="true"){
             $output .= "</ul>\n";
             $output .= "<ul class=\"" . $this->class_clist . "\">";
-            $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
+            $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
             $output .= "</ul>";
         }
         return $output;

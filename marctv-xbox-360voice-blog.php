@@ -1,27 +1,30 @@
 <?php
-
 /*
   Plugin Name: MarcTV 360Voice Blog
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.5.1
+  Version: 1.5.2
   Author URI: http://marctv.de
   License: GPL2
  */
-
 class XBOX360_Voice {
     const VOICEURL = 'http://360voice.gamerdna.com/rss/';
     var $namespace = 'xbox360voice';
     var $username = '';
     var $rl_name = '';
     var $avatarsize = '';
+    var $displaycredits = '';
+    var $displayavatar = '';
+    var $hal_mode = '';
+    var $count = 3;
     var $class_list = 'x3v_list';
     var $class_item = 'x3v_item';
     var $class_clist = 'x3v_list';
     var $class_citem = 'x3v_item';
     var $class_desc = 'x3v_desc';
     var $class_title = 'x3v_title';
+    
     var $cachename = 'xbox360voice_cache';
 
     function XBOX360Voice() {
@@ -37,9 +40,13 @@ class XBOX360_Voice {
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
         add_action('wp_print_styles', array(&$this, 'add_styles'));
 
-        $this->username = get_option('xbox360voice_username');
-        $this->rl_name = get_option('xbox360voice_rl-name');
-        $this->avatarsize = get_option('xbox360voice_avatarsize');
+        $this->username =       get_option($this->namespace . '_username');
+        $this->rl_name =        get_option($this->namespace . '_rl-name');
+        $this->avatarsize =     get_option($this->namespace . '_avatarsize');
+        $this->displayavatar =  get_option($this->namespace . '_displayavatar');
+        $this->displaycredits = get_option($this->namespace . '_displaycredits');
+        $this->hal_mode     =   get_option($this->namespace . '_hal_mode');
+        $this->count        =   get_option($this->namespace . '_count');
     }
 
     function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "", $class_clist = "", $class_citem = "") {
@@ -125,8 +132,9 @@ class XBOX360_Voice {
     }
 
     function renderXBOX360VoiceBlog() {
-        if (!$this->username == "" AND !get_option($this->cachename) == "") {
-            $xmlobj = @new SimpleXMLElement(get_option($this->cachename));
+        $xmlobj = get_option($this->cachename);
+        if (!$this->username == "" AND !$xmlobj == "") {
+            $xmlobj = @new SimpleXMLElement($xmlobj);
             echo $this->generateList($xmlobj);
         } else {
             echo '<ul><li><p>No Username provided!</p><p>Please go to the <a href="' . home_url() . '/wp-admin/options-general.php?page=xbox360voice">plugin settings</a> and enter your username.</p></li></ul>';
@@ -160,8 +168,8 @@ class XBOX360_Voice {
 
         $avatar_img = '';
 
-        if (get_option($this->namespace . '_displayavatar') == 'enabled') {
-            if (get_option($this->namespace . '_hal_mode') == 'enabled') {
+        if ($this->displayavatar == 'enabled') {
+            if ($this->hal_mode == 'enabled') {
                 $imagepath = WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/avatarpic-" . $this->avatarsize . ".jpg";
             } else {
                 $imagepath = 'http://avatar.xboxlive.com/avatar/' . $this->username . '/avatarpic-' . $this->avatarsize . '.png';
@@ -170,14 +178,14 @@ class XBOX360_Voice {
         }
 
         $output = "<ul class=\"" . $this->class_list . "\">\n";
-        for ($i = 0; $i < get_option($this->namespace . '_count'); $i++) {
+        for ($i = 0; $i < $this->count; $i++) {
             $output .= "<li class=\"" . $this->class_item . "\">\n
                 <strong class=\"" . $this->class_title . "\">" . $this->extractDate($xmlobj->channel[0]->item[$i]->title) . "</strong>\n
                 <p class=\"" . $this->class_desc . "\">" . $avatar_img . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
                 </li>\n";
         }
         $output .= "</ul>\n";
-        if (get_option($this->namespace . '_displaycredits') == 'enabled') {
+        if ($this->displaycredits == 'enabled') {
             $output .= "<ul class=\"" . $this->class_clist . "\">";
             $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
             $output .= "</ul>";
@@ -235,8 +243,8 @@ class XBOX360_Voice {
     }
 
     function do_this_twicedaily() {
-        if (!get_option('xbox360voice_username') == '') {
-            $xmlobj = $this->getXMLObj(get_option('xbox360voice_username'));
+        if (!$this->username == '') {
+            $xmlobj = $this->getXMLObj($this->username);
             if (count($xmlobj->channel->item) > 3) {
                 update_option($this->cachename, $xmlobj->asXML());
                 return true;
@@ -337,6 +345,8 @@ class XBOX360_Voice {
         $msg .= $this->renderOption($_POST, array('s' => '32px small', 'l' => '50px large'), 'avatarsize', 'Avatar Size', 'Size of the avatar image:', '1');
         echo '<p class="submit"><input type="submit" name="submit" value="' . $this->__("Save &raquo;") . '" /></p>';
         echo '</form>';
+
+        $this->username = get_option('xbox360voice_username');
 
         if (get_option('xbox360voice_username') != '' && $this->do_this_twicedaily() == false) {
             $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog: ') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . get_option('xbox360voice_username') . '">360Voice Blog</a>';

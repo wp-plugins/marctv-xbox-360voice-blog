@@ -1,31 +1,28 @@
 <?php
+
 /*
   Plugin Name: MarcTV 360Voice Blog
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.4.1
+  Version: 1.5
   Author URI: http://marctv.de
   License: GPL2
  */
 
 class XBOX360_Voice {
     const VOICEURL = 'http://360voice.gamerdna.com/rss/';
-    var $username       = '';
-    var $rl_name        = '';
-    var $avatarsize     = '';
-    var $count          = 3; //will be custmizable in future releases
-    var $class_list     = 'x3v_list';
-    var $class_item     = 'x3v_item';
-    var $class_clist    = 'x3v_list';
-    var $class_citem    = 'x3v_item';
-    var $class_desc     = 'x3v_desc';
-    var $class_title    = 'x3v_title';
-    var $displaycredits = "true";
-    var $displayavatar  = "true";
-
-   
-    var $cachename = 'XBOX360Voice_cache';
+    var $namespace = 'xbox360voice';
+    var $username = '';
+    var $avatarsize = '';
+    var $count = 3; //will be custmizable in future releases
+    var $class_list = 'x3v_list';
+    var $class_item = 'x3v_item';
+    var $class_clist = 'x3v_list';
+    var $class_citem = 'x3v_item';
+    var $class_desc = 'x3v_desc';
+    var $class_title = 'x3v_title';
+    var $cachename = 'xbox360voice_cache';
 
     function XBOX360Voice() {
         $this->__construct();
@@ -41,24 +38,10 @@ class XBOX360_Voice {
         add_action('wp_print_styles', array(&$this, 'add_styles'));
 
         $this->username = get_option('xbox360voice_username');
-        $this->rl_name = get_option('xbox360voice_rl_name');
         $this->avatarsize = get_option('xbox360voice_avatarsize');
-
-        if(get_option('xbox360voice_displaycredits')==''){
-            update_option('xbox360voice_displaycredits', trim(stripslashes($this->displaycredits)));
-        }else{
-            $this->displaycredits = get_option('xbox360voice_displaycredits');
-        }
-
-        if(get_option('xbox360voice_displayavatar')==''){
-            update_option('xbox360voice_displayavatar', trim(stripslashes($this->displayavatar)));
-        }else{
-            $this->displayavatar = get_option('xbox360voice_displayavatar');
-        }
-
     }
 
-    function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "",$class_clist = "",$class_citem = "") {
+    function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "", $class_clist = "", $class_citem = "") {
 
         if ($class_title != "") {
             $this->class_title = $class_title;
@@ -103,7 +86,7 @@ class XBOX360_Voice {
         add_options_page($this->__('XBOX 360 Voice'), $this->__('XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
     }
 
-    function add_styles(){
+    function add_styles() {
         wp_enqueue_style(
                 "marctv-xbox360voice", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/styles.css",
                 false, "1.0");
@@ -165,30 +148,35 @@ class XBOX360_Voice {
 
     function generateList($xmlobj) {
 
-        if($this->avatarsize == 'l'){
+        if ($this->avatarsize == 'l') {
             $size = '50';
-        }else if($this->avatarsize == 's'){
+        } else if ($this->avatarsize == 's') {
             $size = '32';
-        }else{
+        } else {
             $size = '50';
             $this->avatarsize = 'l';
         }
-        
+
         $avatar_img = '';
 
-        if($this->displayavatar=="true"){
-            $avatar_img = '<img class="avatar_left" height="' . $size . '" width="' . $size . '" src="http://avatar.xboxlive.com/avatar/' . $this->username . '/avatarpic-' . $this->avatarsize . '.png" >';
+        if (get_option($this->namespace . '_displayavatar') == 'enabled') {
+            if (get_option($this->namespace . '_hal_mode') == 'enabled') {
+                $imagepath = WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/avatarpic-" . $this->avatarsize . ".jpg";
+            } else {
+                $imagepath = 'http://avatar.xboxlive.com/avatar/' . $this->username . '/avatarpic-' . $this->avatarsize . '.png';
+            }
+            $avatar_img = '<img class="avatar_left" height="' . $size . '" width="' . $size . '" src="' . $imagepath . '" >';
         }
 
         $output = "<ul class=\"" . $this->class_list . "\">\n";
-        for ($i = 0; $i < $this->count; $i++) {
+        for ($i = 0; $i < get_option($this->namespace . '_count'); $i++) {
             $output .= "<li class=\"" . $this->class_item . "\">\n
                 <strong class=\"" . $this->class_title . "\">" . $this->extractDate($xmlobj->channel[0]->item[$i]->title) . "</strong>\n
                 <p class=\"" . $this->class_desc . "\">" . $avatar_img . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
                 </li>\n";
         }
-        if($this->displaycredits=="true"){
-            $output .= "</ul>\n";
+        $output .= "</ul>\n";
+        if (get_option($this->namespace . '_displaycredits') == 'enabled') {
             $output .= "<ul class=\"" . $this->class_clist . "\">";
             $output .= "<li class=\"" . $this->class_citem . "\"><small><a href=\"http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/\">MarcTV XBOX360Voice Plugin</a> powered by <a href=\"http://360voice.gamerdna.com/\">360voice.gamerdna.com</a></small></li>\n";
             $output .= "</ul>";
@@ -200,8 +188,8 @@ class XBOX360_Voice {
         $arr = explode(' - ', $html_str);
         $date = $this->timeAgo(strtotime($arr[1]), 1);
 
-        if(preg_match("/Weekly Recap/i", $arr[0])){
-            return "Weekly Recap - ".$date;
+        if (preg_match("/Weekly Recap/i", $arr[0])) {
+            return "Weekly Recap - " . $date;
         }
 
         return $date;
@@ -244,8 +232,8 @@ class XBOX360_Voice {
     }
 
     function do_this_twicedaily() {
-        if (!$this->username == '') {
-            $xmlobj = $this->getXMLObj($this->username);
+        if (!get_option('xbox360voice_username') == '') {
+            $xmlobj = $this->getXMLObj(get_option('xbox360voice_username'));
             if (count($xmlobj->channel->item) > 3) {
                 update_option($this->cachename, $xmlobj->asXML());
                 return true;
@@ -257,117 +245,113 @@ class XBOX360_Voice {
         }
     }
 
+    function renderOption($POST, $type, $name, $legend, $label, $default_value = '') {
+        switch ($type) {
+            case 'checkbox':
+                if (get_option($this->namespace . '_' . $name) == '') {
+                    update_option($this->namespace . '_' . $name, $default_value);
+                } else {
+                    if (isset($POST[$this->namespace . '-settings'])) {
+                        if ($POST[$this->namespace . '-' . $name] == '') {
+                            if (update_option($this->namespace . '_' . $name, 'disabled')) {
+                                $msg = '<p>' . $legend . ' disabled!</p>';
+                            }
+                        } else {
+                            if (update_option($this->namespace . '_' . $name, 'enabled')) {
+                                $msg = '<p>' . $legend . ' enabled!</p>';
+                            }
+                        }
+                    }
+                }
+                $input .= '<input class="form_elem" type="checkbox" ';
+                if (get_option($this->namespace . '_' . $name) == 'enabled') {
+                    $input .= 'checked="checked" ';
+                }
+                $input .= ' value="enabled" ';
+                $input .= ' name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '" />';
+                break;
+            case 'text':
+                if (get_option($this->namespace . '_' . $name) == '') {
+                    update_option($this->namespace . '_' . $name, $default_value);
+                }
+                if (isset($POST[$this->namespace . '-settings'])) {
+                    if (update_option($this->namespace . '_' . $name, trim(stripslashes($_POST[$this->namespace . '-' . $name])))) {
+                        $msg = '<p>' . $this->__($legend . ' saved.') . '</p>';
+                    }
+                }
+                $input .= '<input  value="' . htmlentities(trim(stripslashes(get_option($this->namespace . '_' . $name)))) . '" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '" ';
+                $input .= 'class="form_elem" size="30" type="text" />';
+
+                break;
+            default; //Dropdown
+                if (is_array($type)) {
+                    if (get_option($this->namespace . '_' . $name) == '') {
+                        update_option($this->namespace . '_' . $name, $default_value);
+                    }
+                    if (isset($POST[$this->namespace . '-settings'])) {
+                        if (update_option($this->namespace . '_' . $name, trim(stripslashes($_POST[$this->namespace . '-' . $name])))) {
+                            $msg = '<p>' . $this->__($legend . ' saved.') . '</p>';
+                        }
+                    }
+                    $input .= '<select class="form_elem" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '">';
+                    foreach ($type as $k => $v) {
+                        $input .= '<option ';
+                        if (get_option($this->namespace . '_' . $name) == $k) {
+                            $input .= 'selected="selected"';
+                        }
+                        $input .= ' value=' . $k . '>' . $v . '</option>';
+                    }
+                    $input .= '</select>';
+                }
+                break;
+        }
+        $output .= '<fieldset class="options"><legend>' . $this->__($legend) . '</legend>';
+        $output .= '<label for="' . $this->namespace . '-' . $name . '">' . $this->__($label) . ' ';
+        $output .= $input;
+        $output .= '</label>';
+        $output .= '</fieldset>';
+        echo $output;
+
+        return $msg;
+    }
+
     function menu() {
-        // this is kind of ugly. Why doesn't wp implement a function for all this? Or did I miss something?
         $msg = '';
         if (isset($_POST['xbox360voice-settings'])) {
             check_admin_referer('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+        }
+        echo '<div class="wrap">';
+        echo '<h2>' . $this->__('XBOX 360 Voice settings') . '</h2>';
+        echo '<form method="post" action="">';
+        echo '<input type="hidden" value="1" name="' . $this->namespace . '-settings" id="' . $this->namespace . '-settings" />';
+        wp_nonce_field($this->namespace . '-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+        $msg .= $this->renderOption($_POST, 'text', 'username', 'XBOX Live Username', 'Enter your Gamertag:');
+        $msg .= $this->renderOption($_POST, 'text', 'rl-name', 'Realname (optional)', 'Enter your real first name:');
+        $msg .= $this->renderOption($_POST, 'checkbox', 'displaycredits', 'Credits', 'Display credits link?', 'enabled');
+        $msg .= $this->renderOption($_POST, 'checkbox', 'hal_mode', 'HAL 9000 mode', 'Display HAL 9000 image instead of avatar?', 'disabled');
+        $msg .= $this->renderOption($_POST, 'checkbox', 'displayavatar', 'Avatar', 'Display avatar image?', 'enabled');
+        $msg .= $this->renderOption($_POST, array('1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7'), 'count', 'Item count', 'Number of items to be shown:', '3');
+        $msg .= $this->renderOption($_POST, array('s' => '32px small', 'l' => '50px large'), 'avatarsize', 'Avatar Size', 'Size of the avatar image:', '1');
+        echo '<p class="submit"><input type="submit" name="submit" value="' . $this->__("Save &raquo;") . '" /></p>';
+        echo '</form>';
 
-            if (update_option('xbox360voice_username', trim(stripslashes($_POST['xbox360voice-username'])))) {
-                $msg .= '<p>' . $this->__('XBOX Live username saved.') . '</p>';
-            }
-
-            if (update_option('xbox360voice_rl_name', trim(stripslashes($_POST['xbox360voice-rl-name'])))) {
-                $msg .= '<p>' . $this->__('Realname saved.') . '</p>';
-            }
-
-            if (update_option('xbox360voice_avatarsize', trim(stripslashes($_POST['xbox360voice-avatarsize'])))) {
-                $msg .= '<p>' . $this->__('Avatar size saved.') . '</p>';
-            }
-           
-            if($_POST['xbox360voice-displaycredits']==true){
-               if(get_option('xbox360voice_displaycredits')!='true'){
-                   $msg .= '<p>' . $this->__('Credits enabled') . '</p>';
-               }
-               update_option('xbox360voice_displaycredits', 'true');
-            }else{
-               if(get_option('xbox360voice_displaycredits')!='false'){
-                   $msg .= '<p>' . $this->__('Credits disabled') . '</p>';
-               }
-               update_option('xbox360voice_displaycredits', 'false');
-            }
-
-
-            if($_POST['xbox360voice-displayavatar']==true){
-               if(get_option('xbox360voice_displayavatar')!='true'){
-                   $msg .= '<p>' . $this->__('Avatar enabled') . '</p>';
-               }
-               update_option('xbox360voice_displayavatar', 'true');
-            }else{
-               if(get_option('xbox360voice_displayavatar')!='false'){
-                   $msg .= '<p>' . $this->__('Avatar disabled') . '</p>';
-               }
-               update_option('xbox360voice_displayavatar', 'false');
-            }
-
-
-            if (empty($msg)) {
-                $msg .= '<p>' . $this->__('No changes made.') . '</p>';
-            }
+        if (get_option('xbox360voice_username') != '' && $this->do_this_twicedaily() == false) {
+            $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog: ') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . get_option('xbox360voice_username') . '">360Voice Blog</a>';
         }
 
-        $this->username         = get_option('xbox360voice_username');
-        $this->rl_name          = get_option('xbox360voice_rl_name');
-        $this->displaycredits   = get_option('xbox360voice_displaycredits');
-        $this->displayavatar    = get_option('xbox360voice_displayavatar');
-        $this->avatarsize       = get_option('xbox360voice_avatarsize');
-
-        if ($this->username !='' && $this->do_this_twicedaily() == false) {
-            $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog:') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . $this->username . '">360Voice Blog</a>';
-        }
-
-        if ($this->username ==''){
+        if (get_option('xbox360voice_username') == '') {
             $msg .= '<strong class="warning">Please enter you XBOX Live Gamertag</strong>';
         }
-
+        if (empty($msg) && isset($_POST['xbox360voice-settings'])) {
+            $msg .= '<p>' . $this->__('No changes made.') . '</p>';
+        }
         if (!empty($msg)) {
             echo '<div id="message">' . $msg . '</div>';
         }
-?>
-        <div class="wrap">
-            <h2><?php $this->_e('XBOX 360 Voice settings') ?></h2>
-            <form method="post" action="">
-                <input type="hidden" value="1" name="xbox360voice-settings" id="xbox360voice-settings" />
-                <?php wp_nonce_field('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']); ?>
-                <fieldset class="options"><legend><?php $this->_e('XBOX Live Username:') ?></legend>
-                    <label for="xbox360voice-username"> <?php $this->_e('Enter your Gamertag:') ?>
-                    <input class="form_elem" size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->username))); ?>" name="xbox360voice-username" id="xbox360voice-username" />
-                    </label>
-                </fieldset>
-
-                <fieldset class="options"><legend><?php $this->_e('Realname (optional):') ?></legend>
-                    <label for="xbox360voice-rl-name"> <?php $this->_e('Enter your real first name:') ?>
-                    <input class="form_elem" size="30" type="text" value="<?php echo htmlentities(trim(stripslashes($this->rl_name))); ?>" name="xbox360voice-rl-name" id="xbox360voice-rl-name" />
-                    </label>
-                </fieldset>
-                
-                <fieldset class="options"><legend><?php $this->_e('Credits:') ?></legend>
-                    <label for="xbox360voice-displaycredits"> <?php $this->_e('Display credits link?') ?>
-                    <input class="form_elem" type="checkbox" <?php if($this->displaycredits=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displaycredits" id="xbox360voice-displaycredits" />
-                    </label>
-                </fieldset>
-
-                <fieldset class="options"><legend><?php $this->_e('Avatar:') ?></legend>
-                    <label for="xbox360voice-displayavatar"> <?php $this->_e('Display avatar image?') ?>
-                    <input class="form_elem" type="checkbox" <?php if($this->displayavatar=='true'){echo 'checked="checked"';} ?> value="true" name="xbox360voice-displayavatar" id="xbox360voice-displayavatar" />
-                    </label>
-                </fieldset>
-
-                <fieldset class="options"><legend><?php $this->_e('Avatar Size:') ?></legend>
-                    <label for="xbox360voice-avatarsize"> <?php $this->_e('Size of the avatar image:') ?>
-                    <select class="form_elem" name="xbox360voice-avatarsize" id="xbox360voice-avatarsize">
-                      <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="l"){echo 'selected="selected"';} ?> value="l"><?php $this->_e('large - 50px') ?></option>
-                      <option <?php if(htmlentities(trim(stripslashes($this->avatarsize)))=="s"){echo 'selected="selected"';} ?> value="s"><?php $this->_e('small - 32px') ?></option>
-                    </select>
-                    </label>
-                </fieldset>
-
-
-                <p class="submit"><input type="submit" name="submit" value="<?php $this->_e('Save &raquo;') ?>" /></p>
-            </form>
-        </div>
-<?php
+        echo '</div>';
     }
+
 }
+
 $xbox360voice_plugin = new XBOX360_Voice();
 ?>

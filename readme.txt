@@ -3,7 +3,7 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna, marctv
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.4.1
+Stable tag: 1.5
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
@@ -69,6 +69,11 @@ Fixed small issues. Added screenshots
 
 * added new plugin homepage
 * Fixed wording
+
+= 1.5 =
+
+* rewrote option functions from scratch
+* added HAL 9000 mode
 
 == Screenshots ==
 

@@ -74,6 +74,7 @@ Fixed small issues. Added screenshots
 
 * rewrote option functions from scratch
 * added HAL 9000 mode
+* added option to customize the number of shown items
 
 == Screenshots ==
 

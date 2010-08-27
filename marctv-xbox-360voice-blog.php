@@ -15,7 +15,6 @@ class XBOX360_Voice {
     var $namespace = 'xbox360voice';
     var $username = '';
     var $avatarsize = '';
-    var $count = 3; //will be custmizable in future releases
     var $class_list = 'x3v_list';
     var $class_item = 'x3v_item';
     var $class_clist = 'x3v_list';

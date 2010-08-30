@@ -3,7 +3,7 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna, marctv
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.6.1
+Stable tag: 1.7
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
@@ -15,9 +15,15 @@ Displays the latest entries of your 360 voice gamerdna blog either as a widget f
 
 = Basic =
 
-Upload the "MarcTV XBOX 360Voice Blog" plugin to your blog, Activate it.
+* Register a 360Voice Blog for your XBOX Live Gamertag: http://www.360voice.com/forum/register-full.asp
+* Upload the "MarcTV XBOX 360Voice Blog" plugin to your plugin folder or install from within wordpress
+* Activate it.
+* Enter your XBOX Live Gamertag in the "XBOX 360 Voice Blog" option page under settings.
+* Save your settings
+* Go to "Appearance" -> "Widgets"
+* Drag the "XBOX360Voice"- Widget into your sidebar
 
-You can use the widget to simply drag the blog into your sidebar. Don't forget to set your XBOX Live username in the settings.
+Note: If you don't have a theme with sidebar support skip to the "Advanced" tutorial below.
 
 = Advanced =
 
@@ -91,6 +97,10 @@ Fixed small issues. Added screenshots
 = 1.6.1 =
 
 * added clean up routine of activation to prevent double scheduling of wp cron
+
+= 1.7 =
+
+* Added Tutorial
 
 == Screenshots ==
 

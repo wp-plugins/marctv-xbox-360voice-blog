@@ -3,7 +3,7 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna, marctv
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.7
+Stable tag: 1.8
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
@@ -19,6 +19,7 @@ Displays the latest entries of your 360 voice gamerdna blog either as a widget f
 * Upload the "MarcTV XBOX 360Voice Blog" plugin to your plugin folder or install from within wordpress
 * Activate it.
 * Enter your XBOX Live Gamertag in the "XBOX 360 Voice Blog" option page under settings.
+* Customize the settings according to your needs
 * Save your settings
 * Go to "Appearance" -> "Widgets"
 * Drag the "XBOX360Voice"- Widget into your sidebar
@@ -101,6 +102,11 @@ Fixed small issues. Added screenshots
 = 1.7 =
 
 * Added Tutorial
+* Added Icon
+
+= 1.8 =
+
+* Better detection for the correct xml format from 360voice. This should fix the problem for some people with a brand new 360voice account.
 
 == Screenshots ==
 

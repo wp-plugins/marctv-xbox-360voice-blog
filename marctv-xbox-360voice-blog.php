@@ -4,7 +4,7 @@
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.8
+  Version: 1.8.1
   Author URI: http://marctv.de
   License: GPL2
  */
@@ -32,14 +32,17 @@ class XBOX360_Voice {
     }
 
     function __construct() {
+
         add_action('get_xbox360voice_blog', array(&$this, 'get_xbox360voice_blog'));
         register_activation_hook(__FILE__, array(&$this, 'my_activation'));
+        if ($_GET['action'] == 'error_scrape') {
+            die("Sorry, this plugin requires PHP 5.0 or higher. Please deactivate  it.");
+        }
         register_deactivation_hook(__FILE__, array(&$this, 'my_deactivation'));
         add_action('pull_xbox360voice_xml', array(&$this, 'do_this_twicedaily'));
         add_action('plugins_loaded', array(&$this, 'marctv_xbox360voice_loaded'));
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
         add_action('wp_print_styles', array(&$this, 'add_styles'));
-
         $this->username =       get_option($this->namespace . '_username');
         $this->rl_name =        get_option($this->namespace . '_rl-name');
         $this->avatarsize =     get_option($this->namespace . '_avatarsize');
@@ -101,9 +104,14 @@ class XBOX360_Voice {
     }
 
     function my_activation() {
+        if (version_compare(phpversion(), "5.0", "<")){
+                trigger_error('', E_USER_ERROR);
+        }
         wp_clear_scheduled_hook('pull_xbox360voice_xml');
         wp_schedule_event(time(), 'twicedaily', 'pull_xbox360voice_xml');
         add_option($this->cachename, '', "XBOX 360voice XML Cache", "no");
+
+
     }
 
     function my_deactivation() {
@@ -175,7 +183,7 @@ class XBOX360_Voice {
             } else {
                 $imagepath = 'http://avatar.xboxlive.com/avatar/' . $this->username . '/avatarpic-' . $this->avatarsize . '.png';
             }
-            $avatar_img = '<img class="avatar_left" height="' . $size . '" width="' . $size . '" src="' . $imagepath . '" >';
+            $avatar_img = '<img class="avatar" height="' . $size . '" width="' . $size . '" src="' . $imagepath . '" >';
         }
 
         $output = "<ul class=\"" . $this->class_list . "\">\n";

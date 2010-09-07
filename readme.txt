@@ -1,9 +1,9 @@
 === MarcTV XBOX 360Voice Blog ===
 Contributors: marcdk
-Tags: xbox360, blog, 360voice, gamerdna, marctv
+Tags: xbox360, blog, 360voice, gamerdna, marctv, php5
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.8
+Stable tag: 1.8.1
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
@@ -12,6 +12,10 @@ Displays the latest entries of your 360 voice gamerdna blog either as a widget f
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function. The xml data from 360voice is being pulled twice daily with wp_cron.
 
 == Installation ==
+
+= Server Requirements =
+
+This script requires at least PHP 5.0 and support for 'simplexml_load_file'. In the case that this won't work for the majority of people out there I will rewrite the script to support cURL.
 
 = Basic =
 
@@ -39,10 +43,6 @@ You can use it in your template like this:
 The first two parameters are the XBOX Live Username and your reallife name. The others are the various css classes you can define.
 
 Have fun!
-
-= Server Requirements =
-
-This script requires support for 'simplexml_load_file'. In the case that this won't work for the majority of people out there I will rewrite the script to support cURL.
 
 == Changelog ==
 
@@ -107,6 +107,10 @@ Fixed small issues. Added screenshots
 = 1.8 =
 
 * Better detection for the correct xml format from 360voice. This should fix the problem for some people with a brand new 360voice account.
+
+= 1.8.1 =
+
+* added detection for PHP5 on activation.
 
 == Screenshots ==
 

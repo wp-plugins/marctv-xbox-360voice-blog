@@ -3,7 +3,7 @@ Contributors: marcdk
 Tags: xbox360, blog, 360voice, gamerdna, marctv, php5
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 
 Displays the latest entries of your 360 voice gamerdna blog either as a widget for your sidebar or as a customizable function.
 
@@ -111,6 +111,10 @@ Fixed small issues. Added screenshots
 = 1.8.1 =
 
 * added detection for PHP5 on activation.
+
+= 1.8.2 =
+
+* fixed output if the 360voiceblog got less items then defined in the options panel
 
 == Screenshots ==
 

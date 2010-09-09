@@ -1,13 +1,15 @@
 <?php
+
 /*
   Plugin Name: MarcTV 360Voice Blog
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.8.1
+  Version: 1.8.2
   Author URI: http://marctv.de
   License: GPL2
  */
+
 class XBOX360_Voice {
     const VOICEURL = 'http://360voice.gamerdna.com/rss/';
     var $namespace = 'xbox360voice';
@@ -24,7 +26,6 @@ class XBOX360_Voice {
     var $class_citem = 'x3v_item';
     var $class_desc = 'x3v_desc';
     var $class_title = 'x3v_title';
-    
     var $cachename = 'xbox360voice_cache';
 
     function XBOX360Voice() {
@@ -35,21 +36,18 @@ class XBOX360_Voice {
 
         add_action('get_xbox360voice_blog', array(&$this, 'get_xbox360voice_blog'));
         register_activation_hook(__FILE__, array(&$this, 'my_activation'));
-        if ($_GET['action'] == 'error_scrape') {
-            die("Sorry, this plugin requires PHP 5.0 or higher. Please deactivate  it.");
-        }
         register_deactivation_hook(__FILE__, array(&$this, 'my_deactivation'));
         add_action('pull_xbox360voice_xml', array(&$this, 'do_this_twicedaily'));
         add_action('plugins_loaded', array(&$this, 'marctv_xbox360voice_loaded'));
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
         add_action('wp_print_styles', array(&$this, 'add_styles'));
-        $this->username =       get_option($this->namespace . '_username');
-        $this->rl_name =        get_option($this->namespace . '_rl-name');
-        $this->avatarsize =     get_option($this->namespace . '_avatarsize');
-        $this->displayavatar =  get_option($this->namespace . '_displayavatar');
+        $this->username = get_option($this->namespace . '_username');
+        $this->rl_name = get_option($this->namespace . '_rl-name');
+        $this->avatarsize = get_option($this->namespace . '_avatarsize');
+        $this->displayavatar = get_option($this->namespace . '_displayavatar');
         $this->displaycredits = get_option($this->namespace . '_displaycredits');
-        $this->hal_mode     =   get_option($this->namespace . '_hal_mode');
-        $this->count        =   get_option($this->namespace . '_count');
+        $this->hal_mode = get_option($this->namespace . '_hal_mode');
+        $this->count = get_option($this->namespace . '_count');
     }
 
     function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "", $class_clist = "", $class_citem = "") {
@@ -94,7 +92,7 @@ class XBOX360_Voice {
         wp_enqueue_style(
                 "marctv-admin-settings", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/admin.css",
                 false, "1.4");
-        add_options_page($this->__('XBOX 360 Voice'),'<img src="' .  WP_PLUGIN_URL . '/marctv-xbox-360voice-blog/icon.png' . '" width="10" height="10" alt="MarcTV XBOX 360 Voice - Icon" /> ' . $this->__(' XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
+        add_options_page($this->__('XBOX 360 Voice'), '<img src="' . WP_PLUGIN_URL . '/marctv-xbox-360voice-blog/icon.png' . '" width="10" height="10" alt="MarcTV XBOX 360 Voice - Icon" /> ' . $this->__(' XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
     }
 
     function add_styles() {
@@ -104,14 +102,9 @@ class XBOX360_Voice {
     }
 
     function my_activation() {
-        if (version_compare(phpversion(), "5.0", "<")){
-                trigger_error('', E_USER_ERROR);
-        }
         wp_clear_scheduled_hook('pull_xbox360voice_xml');
         wp_schedule_event(time(), 'twicedaily', 'pull_xbox360voice_xml');
         add_option($this->cachename, '', "XBOX 360voice XML Cache", "no");
-
-
     }
 
     function my_deactivation() {
@@ -151,6 +144,7 @@ class XBOX360_Voice {
     }
 
     function getXMLObj($username) {
+        $errormsg = '';
         try {
             $sxe = @new SimpleXMLElement('http://360voice.gamerdna.com/rss.asp?tag=' . $username, NULL, TRUE);
         } catch (Exception $e) {
@@ -175,6 +169,12 @@ class XBOX360_Voice {
             $this->avatarsize = 'l';
         }
 
+        $listcount = $this->count;
+
+        if(count($xmlobj->channel[0]->item)<$this->count){
+             $listcount = count($xmlobj->channel[0]->item);
+        }
+
         $avatar_img = '';
 
         if ($this->displayavatar == 'enabled') {
@@ -187,7 +187,7 @@ class XBOX360_Voice {
         }
 
         $output = "<ul class=\"" . $this->class_list . "\">\n";
-        for ($i = 0; $i < $this->count; $i++) {
+        for ($i = 0; $i < $listcount; $i++) {
             $output .= "<li class=\"" . $this->class_item . "\">\n
                 <strong class=\"" . $this->class_title . "\">" . $this->extractDate($xmlobj->channel[0]->item[$i]->title) . "</strong>\n
                 <p class=\"" . $this->class_desc . "\">" . $avatar_img . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
@@ -266,6 +266,7 @@ class XBOX360_Voice {
     }
 
     function renderOption($POST, $type, $name, $legend, $label, $default_value = '') {
+        $msg = '';
         switch ($type) {
             case 'checkbox':
                 if (get_option($this->namespace . '_' . $name) == '') {
@@ -283,7 +284,7 @@ class XBOX360_Voice {
                         }
                     }
                 }
-                $input .= '<input class="form_elem" type="checkbox" ';
+                $input = '<input class="form_elem" type="checkbox" ';
                 if (get_option($this->namespace . '_' . $name) == 'enabled') {
                     $input .= 'checked="checked" ';
                 }
@@ -299,7 +300,7 @@ class XBOX360_Voice {
                         $msg = '<p>' . $this->__($legend . ' saved.') . '</p>';
                     }
                 }
-                $input .= '<input  value="' . htmlentities(trim(stripslashes(get_option($this->namespace . '_' . $name)))) . '" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '" ';
+                $input = '<input  value="' . htmlentities(trim(stripslashes(get_option($this->namespace . '_' . $name)))) . '" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '" ';
                 $input .= 'class="form_elem" size="30" type="text" />';
 
                 break;
@@ -313,7 +314,7 @@ class XBOX360_Voice {
                             $msg = '<p>' . $this->__($legend . ' saved.') . '</p>';
                         }
                     }
-                    $input .= '<select class="form_elem" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '">';
+                    $input = '<select class="form_elem" name="' . $this->namespace . '-' . $name . '" id="' . $this->namespace . '-' . $name . '">';
                     foreach ($type as $k => $v) {
                         $input .= '<option ';
                         if (get_option($this->namespace . '_' . $name) == $k) {
@@ -325,7 +326,7 @@ class XBOX360_Voice {
                 }
                 break;
         }
-        $output .= '<fieldset class="options"><legend>' . $this->__($legend) . '</legend>';
+        $output = '<fieldset class="options"><legend>' . $this->__($legend) . '</legend>';
         $output .= '<label for="' . $this->namespace . '-' . $name . '">' . $this->__($label) . ' ';
         $output .= $input;
         $output .= '</label>';
@@ -374,6 +375,5 @@ class XBOX360_Voice {
     }
 
 }
-
 $xbox360voice_plugin = new XBOX360_Voice();
 ?>

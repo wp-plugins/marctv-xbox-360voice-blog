@@ -5,7 +5,7 @@
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.8.2
+  Version: 1.8.3
   Author URI: http://marctv.de
   License: GPL2
  */

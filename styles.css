@@ -8,3 +8,7 @@
     list-style:none ;
     margin-left:0;
 }
+
+.x3v_item {
+    overflow: hidden;
+}

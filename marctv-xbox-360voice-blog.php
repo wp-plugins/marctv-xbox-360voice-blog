@@ -5,21 +5,24 @@
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.8.3
+  Version: 1.9
   Author URI: http://marctv.de
   License: GPL2
  */
 
 class XBOX360_Voice {
-    const VOICEURL = 'http://360voice.gamerdna.com/rss/';
+
+    var $xmlurl = 'http://www.360voice.com/api/blog-getentries.asp?tag=';
     var $namespace = 'xbox360voice';
     var $username = '';
     var $rl_name = '';
     var $avatarsize = '';
     var $displaycredits = '';
     var $displayavatar = '';
+    var $displayweekly = '';
     var $hal_mode = '';
-    var $count = 3;
+    var $count = '';
+    var $error_msg = '';
     var $class_list = 'x3v_list';
     var $class_item = 'x3v_item';
     var $class_clist = 'x3v_list';
@@ -33,7 +36,14 @@ class XBOX360_Voice {
     }
 
     function __construct() {
-
+        $this->username = get_option($this->namespace . '_username');
+        $this->rl_name = get_option($this->namespace . '_rl-name');
+        $this->avatarsize = get_option($this->namespace . '_avatarsize');
+        $this->displayweekly = get_option($this->namespace . '_displayweekly');
+        $this->displayavatar = get_option($this->namespace . '_displayavatar');
+        $this->displaycredits = get_option($this->namespace . '_displaycredits');
+        $this->hal_mode = get_option($this->namespace . '_hal_mode');
+        $this->count = get_option($this->namespace . '_count');
         add_action('get_xbox360voice_blog', array(&$this, 'get_xbox360voice_blog'));
         register_activation_hook(__FILE__, array(&$this, 'my_activation'));
         register_deactivation_hook(__FILE__, array(&$this, 'my_deactivation'));
@@ -41,13 +51,6 @@ class XBOX360_Voice {
         add_action('plugins_loaded', array(&$this, 'marctv_xbox360voice_loaded'));
         add_action('admin_menu', array(&$this, 'add_admin_menu'));
         add_action('wp_print_styles', array(&$this, 'add_styles'));
-        $this->username = get_option($this->namespace . '_username');
-        $this->rl_name = get_option($this->namespace . '_rl-name');
-        $this->avatarsize = get_option($this->namespace . '_avatarsize');
-        $this->displayavatar = get_option($this->namespace . '_displayavatar');
-        $this->displaycredits = get_option($this->namespace . '_displaycredits');
-        $this->hal_mode = get_option($this->namespace . '_hal_mode');
-        $this->count = get_option($this->namespace . '_count');
     }
 
     function get_xbox360voice_blog($username = "", $rl_name = "", $class_title = "", $class_list = "", $class_desc = "", $class_item = "", $class_clist = "", $class_citem = "") {
@@ -92,6 +95,12 @@ class XBOX360_Voice {
         wp_enqueue_style(
                 "marctv-admin-settings", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/admin.css",
                 false, "1.4");
+
+        wp_enqueue_script(
+                "jquery.xbox360voice_setup", WP_PLUGIN_URL . "/marctv-xbox-360voice-blog/admin.js",
+                array("jquery"), "", 1);
+
+
         add_options_page($this->__('XBOX 360 Voice'), '<img src="' . WP_PLUGIN_URL . '/marctv-xbox-360voice-blog/icon.png' . '" width="10" height="10" alt="MarcTV XBOX 360 Voice - Icon" /> ' . $this->__(' XBOX 360 Voice'), 'edit_posts', 'xbox360voice', array(&$this, 'menu'));
     }
 
@@ -135,18 +144,29 @@ class XBOX360_Voice {
 
     function renderXBOX360VoiceBlog() {
         $xmlobj = get_option($this->cachename);
+
+
         if (!$this->username == "" AND !$xmlobj == "") {
             $xmlobj = @new SimpleXMLElement($xmlobj);
+
+            // update fix
+            if (isset($xmlobj->channel)) {
+                $this->do_this_twicedaily();
+                $xmlobj = get_option($this->cachename);
+                $xmlobj = @new SimpleXMLElement($xmlobj);
+            }
+
             echo $this->generateList($xmlobj);
         } else {
-            echo '<ul><li><p>No Username provided!</p><p>Please go to the <a href="' . home_url() . '/wp-admin/options-general.php?page=xbox360voice">plugin settings</a> and enter your username.</p></li></ul>';
+            echo '<ul><li><p>An error occurred!</p><p>Please go to the <a href="' . home_url() . '/wp-admin/options-general.php?page=xbox360voice">plugin settings</a></p></li></ul>';
         }
     }
 
     function getXMLObj($username) {
         $errormsg = '';
+        $num = get_option($this->namespace . '_count') + 1;
         try {
-            $sxe = @new SimpleXMLElement('http://360voice.gamerdna.com/rss.asp?tag=' . $username, NULL, TRUE);
+            $sxe = @new SimpleXMLElement($this->xmlurl . $username . "&num=" . $num, NULL, TRUE);
         } catch (Exception $e) {
             $errormsg = $e->getMessage();
         }
@@ -159,7 +179,6 @@ class XBOX360_Voice {
     }
 
     function generateList($xmlobj) {
-
         if ($this->avatarsize == 'l') {
             $size = '50';
         } else if ($this->avatarsize == 's') {
@@ -168,13 +187,6 @@ class XBOX360_Voice {
             $size = '50';
             $this->avatarsize = 'l';
         }
-
-        $listcount = $this->count;
-
-        if(count($xmlobj->channel[0]->item)<$this->count){
-             $listcount = count($xmlobj->channel[0]->item);
-        }
-
         $avatar_img = '';
 
         if ($this->displayavatar == 'enabled') {
@@ -186,13 +198,36 @@ class XBOX360_Voice {
             $avatar_img = '<img class="avatar" height="' . $size . '" width="' . $size . '" src="' . $imagepath . '" >';
         }
 
-        $output = "<ul class=\"" . $this->class_list . "\">\n";
-        for ($i = 0; $i < $listcount; $i++) {
-            $output .= "<li class=\"" . $this->class_item . "\">\n
-                <strong class=\"" . $this->class_title . "\">" . $this->extractDate($xmlobj->channel[0]->item[$i]->title) . "</strong>\n
-                <p class=\"" . $this->class_desc . "\">" . $avatar_img . $this->filterOutput($xmlobj->channel[0]->item[$i]->description) . "</p>
-                </li>\n";
+        $listcount = $this->count;
+
+        if (count($xmlobj->blog->entry) < $this->count) {
+            $listcount = count($xmlobj->blog->entry);
         }
+
+        $output = "<ul class=\"" . $this->class_list . "\">\n";
+
+        $i = 1;
+        foreach ($xmlobj->blog->entry as $entry) {
+            $showitem = true;
+            $text = $this->filterOutput($entry->body);
+            $title = $this->timeAgo(strtotime($entry->date), 1);
+
+            if ($entry->attributes()->type > 0) {
+                $title = 'Weeky Recap';
+                if ($this->displayweekly == "disabled") {
+                    $showitem = false;
+                }
+            }
+
+            if ($showitem && $i <= $listcount) {
+                $output .= "<li class=\"" . $this->class_item . "\">\n
+                    <strong class=\"" . $this->class_title . "\">" . $title . "</strong>\n
+                    <p class=\"" . $this->class_desc . "\">" . $avatar_img . $text . "</p>
+                    </li>\n";
+                $i++;
+            }
+        }
+
         $output .= "</ul>\n";
         if ($this->displaycredits == 'enabled') {
             $output .= "<ul class=\"" . $this->class_clist . "\">";
@@ -200,17 +235,6 @@ class XBOX360_Voice {
             $output .= "</ul>";
         }
         return $output;
-    }
-
-    function extractDate($html_str) {
-        $arr = explode(' - ', $html_str);
-        $date = $this->timeAgo(strtotime($arr[1]), 1);
-
-        if (preg_match("/Weekly Recap/i", $arr[0])) {
-            return "Weekly Recap - " . $date;
-        }
-
-        return $date;
     }
 
     function timeAgo($timestamp, $granularity=2, $format='Y-m-d H:i:s') {
@@ -254,10 +278,17 @@ class XBOX360_Voice {
     function do_this_twicedaily() {
         if (!$this->username == '') {
             $xmlobj = $this->getXMLObj($this->username);
-            if (count($xmlobj->channel->item) > 0) {
+
+            if ($xmlobj->error) {
+                $this->error_msg = $xmlobj->error;
+                return false;
+            }
+
+            if (count($xmlobj->blog->entry) > 0) {
                 update_option($this->cachename, $xmlobj->asXML());
                 return true;
             } else {
+                $this->error_msg = "There seems to be a problem with the XML API. Try again later!";
                 return false;
             }
         } else {
@@ -273,13 +304,14 @@ class XBOX360_Voice {
                     update_option($this->namespace . '_' . $name, $default_value);
                 } else {
                     if (isset($POST[$this->namespace . '-settings'])) {
-                        if ($POST[$this->namespace . '-' . $name] == '') {
-                            if (update_option($this->namespace . '_' . $name, 'disabled')) {
-                                $msg = '<p>' . $legend . ' disabled!</p>';
-                            }
-                        } else {
+                        if (isset($POST[$this->namespace . '-' . $name])) {
                             if (update_option($this->namespace . '_' . $name, 'enabled')) {
                                 $msg = '<p>' . $legend . ' enabled!</p>';
+                            }
+                        } else {
+
+                            if (update_option($this->namespace . '_' . $name, 'disabled')) {
+                                $msg = '<p>' . $legend . ' disabled!</p>';
                             }
                         }
                     }
@@ -341,16 +373,21 @@ class XBOX360_Voice {
         if (isset($_POST['xbox360voice-settings'])) {
             check_admin_referer('xbox360voice-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
         }
+
         echo '<div class="wrap">';
         echo '<h2>' . $this->__('XBOX 360 Voice settings') . '</h2>';
         echo '<form method="post" action="">';
         echo '<input type="hidden" value="1" name="' . $this->namespace . '-settings" id="' . $this->namespace . '-settings" />';
         wp_nonce_field($this->namespace . '-settings' . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
         $msg .= $this->renderOption($_POST, 'text', 'username', 'XBOX Live Username', 'Enter your Gamertag:');
+
+
+
         $msg .= $this->renderOption($_POST, 'text', 'rl-name', 'Realname (optional)', 'Enter your real first name:');
         $msg .= $this->renderOption($_POST, 'checkbox', 'displaycredits', 'Credits', 'Display credits link?', 'enabled');
         $msg .= $this->renderOption($_POST, 'checkbox', 'hal_mode', 'HAL 9000 mode', 'Display HAL 9000 image instead of avatar?', 'disabled');
         $msg .= $this->renderOption($_POST, 'checkbox', 'displayavatar', 'Avatar', 'Display avatar image?', 'enabled');
+        $msg .= $this->renderOption($_POST, 'checkbox', 'displayweekly', 'Weekly Recap', 'Display weekly summary?', 'disabled');
         $msg .= $this->renderOption($_POST, array('1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7'), 'count', 'Item count', 'Number of items to be shown:', '3');
         $msg .= $this->renderOption($_POST, array('s' => '32px small', 'l' => '50px large'), 'avatarsize', 'Avatar Size', 'Size of the avatar image:', '1');
         echo '<p class="submit"><input class="button-primary" type="submit" name="submit" value="' . $this->__("Save &raquo;") . '" /></p>';
@@ -358,8 +395,8 @@ class XBOX360_Voice {
 
         $this->username = get_option('xbox360voice_username');
 
-        if (get_option('xbox360voice_username') != '' && $this->do_this_twicedaily() == false) {
-            $msg .= '<strong class="warning">' . $this->__('There seems to be problem with the GamerDNA Feed. Please check your 360voice blog: ') . ' </strong> <a href="http://360voice.gamerdna.com/tag/' . get_option('xbox360voice_username') . '">360Voice Blog</a>';
+        if ($this->username != '' && $this->do_this_twicedaily() == false) {
+            $msg .= '<div class="warning">' . $this->__('Is "<strong>' . $this->username . '</strong>" signed up for a blog at XBOX360 Voice?') . ' <a href="http://360voice.gamerdna.com/tag/' . get_option('xbox360voice_username') . '"> Visit your 360Voice Blog or sign-up</a></div> ';
         }
 
         if (get_option('xbox360voice_username') == '') {
@@ -368,9 +405,17 @@ class XBOX360_Voice {
         if (empty($msg) && isset($_POST['xbox360voice-settings'])) {
             $msg .= '<p>' . $this->__('No changes made.') . '</p>';
         }
+
+
+
         if (!empty($msg)) {
-            echo '<div id="message">' . $msg . '</div>';
+            echo '<div id="message">';
+            if (!empty($this->error_msg)) {
+                echo '<p class="warning bold">' . $this->error_msg . '</p>';
+            }
+            echo $msg . '</div>';
         }
+
         echo '</div>';
     }
 

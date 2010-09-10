@@ -11,12 +11,20 @@
 
 .settings_page_xbox360voice #message .warning{
    color: red;
+
 }
+.settings_page_xbox360voice #message .bold{
+   font-weight: 700;
+}
+
 .settings_page_xbox360voice #message{
-    background: #eee;
-    padding:1px 10px;
+    background:none repeat scroll 0 0 #EEEEEE;
+    margin:10px 0;
+    padding:1px 10px 10px;
+    width:600px;
 }
 
 .settings_page_xbox360voice .form_elem{
 
 }
+

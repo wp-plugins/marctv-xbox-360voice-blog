@@ -5,7 +5,7 @@
   Plugin URI: http://www.marctv.de/blog/2010/08/25/marctv-wordpress-plugins/
   Description: Displays your XBOX360 GamerDNA Blog either in your sidebar as a widget or with a configurable template tag.
   Author: Marc Tönsing
-  Version: 1.9
+  Version: 1.9.1
   Author URI: http://marctv.de
   License: GPL2
  */
@@ -237,7 +237,7 @@ class XBOX360_Voice {
         return $output;
     }
 
-    function timeAgo($timestamp, $granularity=2, $format='Y-m-d H:i:s') {
+    function timeAgo($timestamp, $granularity=2, $format='D m Y') {
         $difference = time() - $timestamp;
         if ($difference < 0)
             return '0 seconds ago';
@@ -261,7 +261,7 @@ class XBOX360_Voice {
             return ($output ? $output : '0 seconds') . ' ago';
         }
         else
-            return date($format, $timestamp);
+            return date_i18n($format, $timestamp);
     }
 
     /* Filters html and replaces the name */
@@ -383,7 +383,7 @@ class XBOX360_Voice {
 
 
 
-        $msg .= $this->renderOption($_POST, 'text', 'rl-name', 'Realname (optional)', 'Enter your real first name:');
+        $msg .= $this->renderOption($_POST, 'text', 'rl-name', 'Realname (optional)', 'This will be displayed instead of your gametag name');
         $msg .= $this->renderOption($_POST, 'checkbox', 'displaycredits', 'Credits', 'Display credits link?', 'enabled');
         $msg .= $this->renderOption($_POST, 'checkbox', 'hal_mode', 'HAL 9000 mode', 'Display HAL 9000 image instead of avatar?', 'disabled');
         $msg .= $this->renderOption($_POST, 'checkbox', 'displayavatar', 'Avatar', 'Display avatar image?', 'enabled');

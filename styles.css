@@ -1,0 +1,14 @@
+.avatar{
+    display:inline;
+    float:left;
+    margin:5px 10px 0 0;
+}
+
+#wrapper #main .widget-area ul ul {
+    list-style:none ;
+    margin-left:0;
+}
+
+.x3v_item {
+    overflow: hidden;
+}

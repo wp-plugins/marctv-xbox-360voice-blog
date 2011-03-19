@@ -1,0 +1,30 @@
+.settings_page_xbox360voice legend{
+    font-size:120%;
+    font-weight:bold;
+    margin:5px;
+    padding-top:10px;
+}
+
+.settings_page_xbox360voice label{
+    width: 400px;
+}
+
+.settings_page_xbox360voice #message .warning{
+   color: red;
+
+}
+.settings_page_xbox360voice #message .bold{
+   font-weight: 700;
+}
+
+.settings_page_xbox360voice #message{
+    background:none repeat scroll 0 0 #EEEEEE;
+    margin:10px 0;
+    padding:1px 10px 10px;
+    width:600px;
+}
+
+.settings_page_xbox360voice .form_elem{
+
+}
+
